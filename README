@@ -1,1 +1,7 @@
-A small library of composable multi-touch controllers for Codea that implement various game control mechanisms
+A small library of composable multi-touch controllers for Codea that implement various game control mechanisms.
+
+A controller translates touch events into higher level callbacks to control game objects.
+
+The library includes a virtual analogue joystick with central dead-zone, a catapult style interaction for launching projectiles, and tap interpreters that can be used as fire or jump buttons.
+
+Controllers can be composed. A single statement can define a complex control scheme, such as used in a dual-stick shooter, or a shared-screen multiplayer game, or a shared-screen multiplayer dual-stick shooter!
