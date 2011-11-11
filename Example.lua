@@ -160,19 +160,19 @@ function setup()
     sprites:add(player2)
     
     controller = SplitScreen(SPLIT_VERTICAL,
-        controllerFor(player2),
-        controllerFor(player1))
+        controllerFor(player2, player1),
+        controllerFor(player1, player2))
     
     controller:activate()
 end
 
-function controllerFor(player)
+function controllerFor(player, opponent)
     return Minter(
             VirtualStick(100, 40, function(v) 
                 player:steer(v) 
             end),
             TapAction(function() 
-                launchRocket(player.pos, player.vel) 
+                launchRocket(player, opponent)
             end))
 end
 
@@ -181,16 +181,17 @@ function draw()
     
     animator:animate(DeltaTime)
     
-    smoke:draw()
     sprites:draw()
+    smoke:draw()
     controller:draw()
 end
 
-function launchRocket(pos, vel)
-    local start = pos + vel:normalize()*60
+function launchRocket(from, to)
+    local dir = (to.pos-from.pos):normalize()
+    local start = from.pos + 60*dir
     
     local rocket = Trail(launchSmoke, 0.025, 
-        Particle(start, vel, 32, color(255, 0, 0, 255), 2, scaleRGB))
+        Particle(start, 400*dir, 32, color(255, 0, 0, 255), 2, scaleRGB))
     
     animator:add(rocket)
     sprites:add(rocket)
