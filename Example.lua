@@ -49,6 +49,15 @@ function Layer:draw()
     self:each(function (a) a:draw() end)
 end
 
+TwoAndAHalfDeeLayer = class(Layer)
+function TwoAndAHalfDeeLayer:draw()
+    table.sort(self.animations, function(a1, a2)
+        return a1:depth() > a2:depth()
+    end)
+    Layer.draw(self)
+end
+
+
 -- A player character
 
 Chappy = class()
@@ -75,19 +84,21 @@ function Chappy:isAlive()
     return true
 end
 
+function Chappy:depth()
+    return self.pos.y
+end
 
 -- Particles
 
 Particle = class()
 
-function Particle:init(pos, vel, diameter, color, life, fader)
+function Particle:init(pos, vel, diameter, color, life)
     self.diameter = diameter
     self.pos = pos
     self.vel = vel
     self.life = life
     self.age = 0.0
     self.color = color
-    self.fader = fader or noFade
 end
 
 function Particle:isAlive()
@@ -103,17 +114,34 @@ function Particle:draw()
     ellipseMode(CENTER)
     noStroke()
     
-    local c = self.fader(self.color,
-         (self.life - self.age) / self.life)
-    
-    fill(c)
-    stroke(c) -- work around noStroke bug
+    fill(self.color)
+    stroke(self.color) -- work around noStroke bug
     
     ellipse(self.pos.x, self.pos.y, self.diameter, self.diameter)
 end
 
+function Particle:depth()
+    return self.pos.y
+end
+
 
 -- Smoke trails
+
+SmokePuff = class(Particle)
+
+function SmokePuff:draw()
+    ellipseMode(CENTER)
+    noStroke()
+    
+    local ageRatio =  self.age / self.life
+    local c = fadeAlpha(self.color, 1-ageRatio)
+    local d = self.diameter * (1+ageRatio)
+    
+    fill(c)
+    stroke(c) -- work around noStroke bug
+    
+    ellipse(self.pos.x, self.pos.y, d, d)
+end
 
 Trail = class()
 
@@ -142,14 +170,16 @@ function Trail:isAlive()
     return self.decoratedAnimation:isAlive()
 end
 
+function Trail:depth()
+    return self.decoratedAnimation:depth()
+end
 
 -- Let's go!
 
 function setup()
     animator = Animator()
-    sprites = Layer()
-    smoke = Layer()
-    
+    sprites = TwoAndAHalfDeeLayer()
+    smoke = TwoAndAHalfDeeLayer()
     
     local player1 = Chappy("Planet Cute:Character Boy", vec2(WIDTH/2, HEIGHT/4))
     local player2 = Chappy("Planet Cute:Character Horn Girl", vec2(WIDTH/2, 3*HEIGHT/4))
@@ -177,7 +207,7 @@ function controllerFor(player, opponent)
 end
 
 function draw()
-    background(138, 223, 47, 255)
+    background(165, 215, 223, 255)
     
     animator:animate(DeltaTime)
     
@@ -191,7 +221,7 @@ function launchRocket(from, to)
     local start = from.pos + 60*dir
     
     local rocket = Trail(launchSmoke, 0.025, 
-        Particle(start, 400*dir, 32, color(255, 0, 0, 255), 2, scaleRGB))
+        Particle(start, 400*dir, 32, color(255, 0, 0, 255), 2))
     
     animator:add(rocket)
     sprites:add(rocket)
@@ -200,13 +230,12 @@ function launchRocket(from, to)
 end
 
 function launchSmoke(source)
-    local puff = Particle(
+    local puff = SmokePuff(
         source.pos,
         vec2(math.random(0,16),0):rotate(math.random(0,2*math.pi)),
         math.random(16,40),
         randomGrey(128, 160),
-        2,
-        fadeAlpha)
+        2)
         
     animator:add(puff)
     smoke:add(puff)
@@ -222,8 +251,4 @@ end
 
 function fadeAlpha(c, alphaMultiplier)
     return color(c.r, c.g, c.b, c.a*alphaMultiplier)
-end
-
-function noFade(c, mult)
-    return c
 end
