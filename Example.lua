@@ -1,4 +1,4 @@
--- An example of using the controllers for shared-screen muktiplayer.
+-- An example of using the controllers for shared-screen multiplayer.
 -- Two players move and shoot, controlled by a virtual joystick and
 -- tap-to-fire. Bottom of the screen controls player 1, top of the
 -- screen controls player 2
