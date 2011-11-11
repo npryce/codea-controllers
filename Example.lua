@@ -172,7 +172,7 @@ function controllerFor(player)
                 player:steer(v) 
             end),
             TapAction(function() 
-                launchRocket(player.pos + player.vel:normalize()*40, player.vel) 
+                launchRocket(player.pos, player.vel) 
             end))
 end
 
@@ -187,10 +187,10 @@ function draw()
 end
 
 function launchRocket(pos, vel)
-    pos = pos + vel:normalize()*40
+    local start = pos + vel:normalize()*60
     
     local rocket = Trail(launchSmoke, 0.025, 
-        Particle(pos, vel, 32, color(255, 0, 0, 255), 2, scaleRGB))
+        Particle(start, vel, 32, color(255, 0, 0, 255), 2, scaleRGB))
     
     animator:add(rocket)
     sprites:add(rocket)
