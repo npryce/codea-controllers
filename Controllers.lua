@@ -1,6 +1,3 @@
--- Copyright (c) 2011 Nat Pryce
--- License: Apache 2.0
-
 ------------------------------------------------------------
 -- Base class for controllers
 --
@@ -35,6 +32,8 @@ function limitLen(vec, maxLen)
     return vec:normalize() * math.min(vec:len(), maxLen)
 end
 
+function doNothing()
+end
 
 ------------------------------------------------------------
 -- A virtual analogue joystick with a dead-zone at the center
@@ -116,17 +115,19 @@ end
 
 TapAction = class(Controller)
 
-function TapAction:init(callback)
-    self.callback = callback
+function TapAction:init(actionCallback, stopCallback)
+    self.actionCallback = actionCallback
+    self.stopCallback = stopCallback or doNothing
     self.touchId = touchId
 end
 
 function TapAction:touched(t)
     if t.state == BEGAN and self.touchId == nil then
         self.touchId = t.id
-        self.callback()
+        self.actionCallback()
     elseif t.state == ENDED and t.id == self.touchId then
         self.touchId = nil
+        self.stopCallback()
     end
 end
 
