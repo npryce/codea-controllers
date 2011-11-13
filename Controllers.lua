@@ -5,7 +5,7 @@
 -- that do something in the app. (Model/View/Controller style).
 --
 -- Controllers can draw a representation of their current state on
--- the screen but you don't have to.
+-- the screen, but you can choose not to.
 --
 -- A controller can be installed as the global handler for touch
 -- events by calling its activate() method
@@ -38,7 +38,9 @@ end
 ------------------------------------------------------------
 -- A virtual analogue joystick with a dead-zone at the center
 --
--- Callback: steerCallback(v)
+-- Callback:
+--
+--     steerCallback(v)
 --     v : vec2 - in the range vec2(-1,-1) and vec2(1,1)
 
 
@@ -107,11 +109,17 @@ end
 
 
 ------------------------------------------------------------
--- Fires a callback when the user taps the screen but does not
--- allow another tap until they lift their finger again.
+-- Fires a callback when the user touches the screen and when
+-- they lift their finger again and ignores other touches in
+-- the meantime
 --
--- Callback: actionCallback()
---     No arguments
+-- Callbacks:
+--
+--     actionCallback(p)
+--     p : vec2 - the location of the touch
+--
+--     stopCallback(p) -- optional
+--     p : vec2 - the location of the touch
 
 TapAction = class(Controller)
 
@@ -124,10 +132,10 @@ end
 function TapAction:touched(t)
     if t.state == BEGAN and self.touchId == nil then
         self.touchId = t.id
-        self.actionCallback()
+        self.actionCallback(touchPos(t))
     elseif t.state == ENDED and t.id == self.touchId then
         self.touchId = nil
-        self.stopCallback()
+        self.stopCallback(touchPos(t))
     end
 end
 
@@ -188,7 +196,8 @@ end
 -- A "catapult" style launcher. Drag on the screen to input the
 -- direction and force of a launched projectile.
 --
--- Callback: launcher(pos, vel)
+-- Callback: 
+--     launcher(pos, vel)
 --     pos : vec2  - the location where the user started dragging
 --     drag : vec2 - the vector dragged, relative to pos
 
@@ -252,15 +261,20 @@ end
 -- 
 -- This can be used to implement shared-screen multiplayer games.
 --
--- The first constructor argument is either SPLIT_HORIZONTAL or
--- SPLIT_VERTICAL
+-- The constructor argument is a table. If it contains the fields
+-- left and right, the screen is split horizontally, If it 
+-- contains the fields top and bottom it is split vertically.
 
 SplitScreen = class(Controller)
 
-function SplitScreen:init(touchIsForTopOrLeft, topOrLeft, bottomOrRight)
-    self. touchIsForTopOrLeft = touchIsForTopOrLeft
-    self.topOrLeft = topOrLeft
-    self.bottomOrRight = bottomOrRight
+function SplitScreen:init(split)
+    if split.top ~= nil then
+        self.split = {split.bottom, split.top}
+        self.orientation = function(v) return v.y end
+    else
+        self.split = {split.left, split.right}
+        self.orientation = function(v) return v.x end
+    end
     self.touches = {}
 end
 
@@ -268,11 +282,15 @@ function SplitScreen:touched(t)
     local controller
     
     if t.state == BEGAN then
-        if self.touchIsForTopOrLeft(t) then
-            controller = self.topOrLeft
-        else
-            controller = self.bottomOrRight
+        local extent = self.orientation(vec2(WIDTH,HEIGHT))
+        local coord = self.orientation(t)
+
+        if coord < extent/2 then
+            controller = self.split[1]
+        else 
+            controller = self.split[2]
         end
+        
         self.touches[t.id] = controller
     else
         controller = self.touches[t.id]
@@ -286,14 +304,6 @@ function SplitScreen:touched(t)
 end
 
 function SplitScreen:draw()
-    self.topOrLeft:draw()
-    self.bottomOrRight:draw()
-end
-
-function SPLIT_VERTICAL(t)
-    return t.y >= HEIGHT/2
-end
-
-function SPLIT_HORIZONTAL(t)
-    return t.x >= WIDTH/2
+    self.split[1]:draw()
+    self.split[2]:draw()
 end
