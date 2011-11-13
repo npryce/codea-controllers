@@ -189,9 +189,9 @@ function setup()
     sprites:add(player1)
     sprites:add(player2)
     
-    controller = SplitScreen(SPLIT_VERTICAL,
-        controllerFor(player2, player1),
-        controllerFor(player1, player2))
+    controller = SplitScreen{
+        top = controllerFor(player2, player1),
+        bottom = controllerFor(player1, player2)}
     
     controller:activate()
 end
