@@ -38,18 +38,22 @@ end
 ------------------------------------------------------------
 -- A virtual analogue joystick with a dead-zone at the center
 --
--- Callback:
---
---     steerCallback(v)
---     v : vec2 - in the range vec2(-1,-1) and vec2(1,1)
-
+-- -- Arguments:
+--     width - radius of the stick (default = 100)
+--     deadZoneWidth - radius of the stick's dead zone (default = 40)
+--     moved(v) - Called when the stick is moved
+--         v : vec2 - in the range vec2(-1,-1) and vec2(1,1)
+--     pressed() - Called when the user starts using the stick (optional)
+--     released() - Called when the user releases the stick (optional)
 
 VirtualStick = class(Controller)
 
-function VirtualStick:init(radius, deadZoneRadius, steerCallback)
-    self.radius = radius
-    self.deadZoneRadius = deadZoneRadius
-    self.steerCallback = steerCallback
+function VirtualStick:init(args)
+    self.radius = args.radius or 100
+    self.deadZoneRadius = args.deadZoneRadius or 40
+    self.releasedCallback = args.released or doNothing
+    self.steerCallback = args.moved or doNothing
+    self.pressedCallback = args.pressed or doNothing
     self.touchId = nil
     self.touchStart = nil
     self.stickOffset = nil
@@ -62,13 +66,14 @@ function VirtualStick:touched(t)
         self.touchId = t.id
         self.touchStart = pos
         self.stickOffset = vec2(0, 0)
+        self.pressedCallback()
     elseif t.id == self.touchId then
         if t.state == MOVING then
             self.stickOffset = limitLen(pos - self.touchStart, self.radius)
             self.steerCallback(self:vector())
         elseif t.state == ENDED then
             self:reset()
-            self.steerCallback(vec2(0,0))
+            self.releasedCallback()
         end
     end
 end
@@ -113,20 +118,20 @@ end
 -- they lift their finger again and ignores other touches in
 -- the meantime
 --
--- Callbacks:
+-- Arguments:
 --
---     actionCallback(p)
+--     pressed(p) - callback when the user starts the touch (optional)
 --     p : vec2 - the location of the touch
 --
---     stopCallback(p) -- optional
+--     released(p) -- callback when the user ends the touch (optional)
 --     p : vec2 - the location of the touch
 
 TapAction = class(Controller)
 
-function TapAction:init(actionCallback, stopCallback)
-    self.actionCallback = actionCallback
-    self.stopCallback = stopCallback or doNothing
-    self.touchId = touchId
+function TapAction:init(args)
+    self.actionCallback = args.pressed or doNothing
+    self.stopCallback = args.released or doNothing
+    self.touchId = nil
 end
 
 function TapAction:touched(t)
@@ -143,9 +148,7 @@ end
 ------------------------------------------------------------
 -- Directs touch events among multiple controllers depending when
 -- the touch started. The first controller gets events for the
--- first touch, the second for the second touch, and so on, When
--- a touch ends, that controller gets priority for the next 
--- touch.
+-- first touch, the second for the second touch, and so on.
 --
 -- Inspired by the control mechanism in Jeff Minter's iOS games.
 --
@@ -154,20 +157,22 @@ end
 --     and shooting (or jumping)
 --   - Combine two VirtualSticks for a dual-stick shooter
 
-Minter = class(Controller)
+Prioritised = class(Controller)
+Prioritized = Prioritised -- for our American friends!
+Minter = Prioritised -- backwards compatability
 
-function Minter:init(...)
+function Prioritised:init(...)
     self.controllers = {...}
     self.touchIds = {}
 end
 
-function Minter:draw()
+function Prioritised:draw()
     for _, controller in pairs(self.controllers) do
         controller:draw()
     end
 end
 
-function Minter:touched(t)
+function Prioritised:touched(t)
     if t.state == BEGAN then
         for i, controller in ipairs(self.controllers) do
             if self.touchIds[i] == nil then
