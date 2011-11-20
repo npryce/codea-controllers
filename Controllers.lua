@@ -28,19 +28,141 @@ function touchPos(t)
     return vec2(t.x, t.y)
 end
 
-function limitLen(vec, maxLen)
+function clamp(x, min, max)
+    return math.max(min, math.min(max, x))
+end
+
+function clampAbs(x, maxAbs)
+    return clamp(x, -maxAbs, maxAbs)
+end
+
+function clampLen(vec, maxLen)
     return vec:normalize() * math.min(vec:len(), maxLen)
+end
+
+-- projects v onto the direction represented by the given unit vector
+function project(v, unit)
+    return v:dot(unit)
+end
+
+function sign(x)
+    if x == 0 then
+        return 0
+    elseif x < 0 then
+        return -1
+    elseif x > 0 then
+        return 1
+    else
+        return x -- x is NaN
+    end
 end
 
 function doNothing()
 end
 
 ------------------------------------------------------------
--- A virtual analogue joystick with a dead-zone at the center
+-- A virtual analogue slider with a dead-zone at the center,
+-- which activates wherever the user touches their finger
 --
--- -- Arguments:
---     width - radius of the stick (default = 100)
---     deadZoneWidth - radius of the stick's dead zone (default = 40)
+-- Arguments:
+--     orientation - A unit vector that defines the orientation of the slider.
+--                   For example orientation=vec2(1,0) creates a horizontal slider,
+--                   orientation=vec2(0,1) creates a vertical slider. The slider
+--                   can be given an arbitrary orientation; it does not have to be
+--                   aligned with the x or y axis. For example, setting
+--                   orientation=vec2(1,1):normalize() creates a diagonal slider.
+--     radius - Distance from the center to the end of the slider (default = 100)
+--     deadZoneRadius - Distance from the center to the end of the dead zone (default = 25)
+--     moved(x) - Called when the slider is moved
+--         x : float - in the range -1 to 1
+--     pressed() - Called when the user starts using the slider (optional)
+--     released() - Called when the user releases the slider (optional)
+
+
+
+VirtualSlider = class(Controller)
+
+function VirtualSlider:init(args)
+    self.orientation = args.orientation or vec2(1,0)
+    self.radius = args.radius or 100
+    self.deadZoneRadius = args.deadZoneRadius or 25
+    self.releasedCallback = args.released or doNothing
+    self.movedCallback = args.moved or doNothing
+    self.pressedCallback = args.pressed or doNothing
+end
+
+function VirtualSlider:touched(t)
+    local pos = touchPos(t)
+    
+    if t.state == BEGAN and self.touchId == nil then
+        self.touchId = t.id
+        self.touchStart = pos
+        self.sliderOffset = 0
+        self.pressedCallback()
+    elseif t.id == self.touchId then
+        if t.state == MOVING then
+            local v = pos - self.touchStart
+            self.sliderOffset = clampAbs(project(v, self.orientation), self.radius)
+            self.movedCallback(self:value())
+        elseif t.state == ENDED then
+            self:reset()
+            self.releasedCallback()
+        end
+    end
+end
+
+function VirtualSlider:reset()
+    self.touchId = nil
+    self.touchStart = nil
+    self.sliderOffset = nil
+end
+
+function VirtualSlider:value()
+    local range = self.radius - self.deadZoneRadius
+    local amount = sign(self.sliderOffset) * math.max(math.abs(self.sliderOffset) - self.deadZoneRadius, 0)
+    
+    return amount/range
+end
+
+function VirtualSlider:draw()
+    if self.touchId ~= nil then
+        pushStyle()
+        ellipseMode(RADIUS)
+        strokeWidth(3)
+        stroke(255, 255, 255, 255)
+        lineCapMode(SQUARE)
+        noFill()
+        
+        local function polarLine(orientation, fromRadius, toRadius)
+            local from = orientation * fromRadius
+            local to = orientation * toRadius
+            line(from.x, from.y, to.x, to.y)
+        end
+        
+        pushMatrix()
+        translate(self.touchStart.x, self.touchStart.y)
+        polarLine(self.orientation, self.deadZoneRadius, self.radius)
+        polarLine(self.orientation, -self.deadZoneRadius, -self.radius)
+        
+        local sliderPos = self.orientation * self.sliderOffset
+        translate(sliderPos.x, sliderPos.y)
+        strokeWidth(1)
+        ellipse(0, 0, 25, 25)
+        
+        popMatrix()
+        
+        popStyle()
+    end
+end
+
+
+------------------------------------------------------------
+-- A virtual analogue joystick with a dead-zone at the center,
+-- which activates wherever the user touches their finger
+--
+-- Arguments:
+--     radius - radius of the stick (default = 100)
+--     deadZoneRadius - radius of the stick's dead zone (default = 25)
 --     moved(v) - Called when the stick is moved
 --         v : vec2 - in the range vec2(-1,-1) and vec2(1,1)
 --     pressed() - Called when the user starts using the stick (optional)
@@ -50,13 +172,10 @@ VirtualStick = class(Controller)
 
 function VirtualStick:init(args)
     self.radius = args.radius or 100
-    self.deadZoneRadius = args.deadZoneRadius or 40
+    self.deadZoneRadius = args.deadZoneRadius or 25
     self.releasedCallback = args.released or doNothing
     self.steerCallback = args.moved or doNothing
     self.pressedCallback = args.pressed or doNothing
-    self.touchId = nil
-    self.touchStart = nil
-    self.stickOffset = nil
 end
 
 function VirtualStick:touched(t)
@@ -69,13 +188,27 @@ function VirtualStick:touched(t)
         self.pressedCallback()
     elseif t.id == self.touchId then
         if t.state == MOVING then
-            self.stickOffset = limitLen(pos - self.touchStart, self.radius)
+            self.stickOffset = clampLen(pos - self.touchStart, self.radius)
             self.steerCallback(self:vector())
         elseif t.state == ENDED then
             self:reset()
             self.releasedCallback()
         end
     end
+end
+
+function VirtualStick:vector()
+    local stickRange = self.radius - self.deadZoneRadius
+    local stickAmount = math.max(self.stickOffset:len() - self.deadZoneRadius, 0)
+    local stickDirection = self.stickOffset:normalize()
+    
+    return stickDirection * (stickAmount/stickRange)
+end
+
+function VirtualStick:reset()
+    self.touchId = nil
+    self.touchStart = nil
+    self.stickOffset = nil
 end
 
 function VirtualStick:draw()
@@ -91,25 +224,11 @@ function VirtualStick:draw()
         ellipse(0, 0, self.radius, self.radius)
         ellipse(0, 0, self.deadZoneRadius, self.deadZoneRadius)
         translate(self.stickOffset.x, self.stickOffset.y)
-        ellipse(0, 0, 40, 40)
+        ellipse(0, 0, 25, 25)
         popMatrix()
         
         popStyle()
     end
-end
-
-function VirtualStick:vector()
-    local stickRange = self.radius - self.deadZoneRadius
-    local stickAmount = math.max(self.stickOffset:len() - self.deadZoneRadius, 0)
-    local stickDirection = self.stickOffset:normalize()
-    
-    return stickDirection * (stickAmount/stickRange)
-end
-
-function VirtualStick:reset()
-    self.touchId = nil
-    self.touchStart = nil
-    self.touchEnd = nil
 end
 
 
@@ -157,22 +276,22 @@ end
 --     and shooting (or jumping)
 --   - Combine two VirtualSticks for a dual-stick shooter
 
-Prioritised = class(Controller)
-Prioritized = Prioritised -- for our American friends!
-Minter = Prioritised -- backwards compatability
+Minter = class(Controller)
+Prioritised = Minter
+Prioritized = Minter -- for our American friends!
 
-function Prioritised:init(...)
+function Minter:init(...)
     self.controllers = {...}
     self.touchIds = {}
 end
 
-function Prioritised:draw()
+function Minter:draw()
     for _, controller in pairs(self.controllers) do
         controller:draw()
     end
 end
 
-function Prioritised:touched(t)
+function Minter:touched(t)
     if t.state == BEGAN then
         for i, controller in ipairs(self.controllers) do
             if self.touchIds[i] == nil then
