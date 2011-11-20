@@ -12,5 +12,7 @@ Controllers can be composed. A single statement can define a complex control sch
 such as used in a dual-stick shooter, or a shared-screen multiplayer game, or a 
 shared-screen multiplayer dual-stick shooter!
 
+A demo using the library can be seen here: http://www.youtube.com/watch?v=aKetPVT7FO0
+
 To use, just copy the contents of Controllers.lua into your Codea project and delete
 the controller classes you don't want to use.
