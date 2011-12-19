@@ -14,5 +14,4 @@ shared-screen multiplayer dual-stick shooter!
 
 A demo using the library can be seen here: http://www.youtube.com/watch?v=aKetPVT7FO0
 
-To use, just copy the contents of Controllers.lua into your Codea project and delete
-the controller classes you don't want to use.
+You can download the code directly into Codea from here: http://npryce-codea.posterous.com/controllers
