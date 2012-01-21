@@ -4,7 +4,7 @@ various game control mechanisms.
 A controller translates touch events into higher level callbacks to control
 game objects.
 
-The library includes a virtual analogue joystick with central dead-zone, a catapult
+The library includes an analogue joystick and slider with central dead-zone, a catapult
 style interaction for launching projectiles, and tap interpreters that can be used
 as fire or jump buttons.
 
@@ -14,5 +14,6 @@ shared-screen multiplayer dual-stick shooter!
 
 A demo using the library can be seen here: http://www.youtube.com/watch?v=aKetPVT7FO0
 
-To use, just copy the contents of Controllers.lua into your Codea project and delete
-the controller classes you don't want to use.
+Unfortunately, because Apple restrict what apps on iOS can do, you can now longer 
+download the code directly into Codea.  You'll have to copy and paste from the GitHub
+code browser.
