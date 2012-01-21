@@ -4,6 +4,16 @@
 <dict>
 	<key>Author</key>
 	<string>Unknown</string>
+	<key>Buffer Order</key>
+	<array>
+		<string>Controller</string>
+		<string>Controller_Catapult</string>
+		<string>Controller_Minter</string>
+		<string>Controller_SplitScreen</string>
+		<string>Controller_TapAction</string>
+		<string>Controller_VirtualSlider</string>
+		<string>Controller_VirtualStick</string>
+	</array>
 	<key>Created</key>
 	<date>2011-11-11T00:42:24Z</date>
 	<key>Description</key>

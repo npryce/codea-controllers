@@ -25,5 +25,7 @@ function TapAction:touched(t)
     elseif t.state == ENDED and t.id == self.touchId then
         self.touchId = nil
         self.stopCallback(touchPos(t))
+    elseif t.state == CANCELLED then
+        self.touchId = nil
     end
 end

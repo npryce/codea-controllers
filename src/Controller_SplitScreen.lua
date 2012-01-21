@@ -38,7 +38,7 @@ function SplitScreen:touched(t)
     else
         controller = self.touches[t.id]
         
-        if t.state == ENDED then
+        if t.state == ENDED or t.state == CANCELLED then
             self.touches[t.id] = nil
         end
     end

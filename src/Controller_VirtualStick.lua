@@ -34,6 +34,8 @@ function VirtualStick:touched(t)
         elseif t.state == ENDED then
             self:reset()
             self.releasedCallback()
+        elseif t.state == CANCELLED then
+            self:reset()
         end
     end
 end

@@ -38,7 +38,7 @@ function Minter:touched(t)
             if self.touchIds[i] == t.id then
                 controller:touched(t)
                 
-                if t.state == ENDED then
+                if t.state == ENDED or t.state == CANCELLED then
                     self.touchIds[i] = nil
                 end
                 
