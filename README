@@ -4,7 +4,7 @@ various game control mechanisms.
 A controller translates touch events into higher level callbacks to control
 game objects.
 
-The library includes a virtual analogue joystick with central dead-zone, a catapult
+The library includes an analogue joystick and slider with central dead-zone, a catapult
 style interaction for launching projectiles, and tap interpreters that can be used
 as fire or jump buttons.
 
