@@ -35,6 +35,10 @@ function Catapult:touched(t)
         
         self.touchStarts[t.id] = nil
         self.touchEnds[t.id] = nil
+        
+    elseif t.state == CANCELLED then
+        self.touchStarts[t.id] = nil
+        self.touchEnds[t.id] = nil
     end
 end
 

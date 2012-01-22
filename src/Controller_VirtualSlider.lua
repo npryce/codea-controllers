@@ -39,11 +39,9 @@ function VirtualSlider:touched(t)
             local v = pos - self.touchStart
             self.sliderOffset = clampAbs(project(v, self.orientation), self.radius)
             self.movedCallback(self:value())
-        elseif t.state == ENDED then
+        elseif t.state == ENDED or t.state == CANCELLED then
             self:reset()
             self.releasedCallback()
-        elseif t.state == CANCELLED then
-            self:reset()
         end
     end
 end

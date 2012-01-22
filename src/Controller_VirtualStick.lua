@@ -31,11 +31,9 @@ function VirtualStick:touched(t)
         if t.state == MOVING then
             self.stickOffset = clampLen(pos - self.touchStart, self.radius)
             self.steerCallback(self:vector())
-        elseif t.state == ENDED then
+        elseif t.state == ENDED or t.state == CANCELLED then
             self:reset()
             self.releasedCallback()
-        elseif t.state == CANCELLED then
-            self:reset()
         end
     end
 end
