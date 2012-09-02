@@ -13,6 +13,8 @@
 		<string>Controller_TapAction</string>
 		<string>Controller_VirtualSlider</string>
 		<string>Controller_VirtualStick</string>
+		<string>Controller_All</string>
+		<string>Controller_Trackball</string>
 	</array>
 	<key>Created</key>
 	<date>2011-11-11T00:42:24Z</date>
