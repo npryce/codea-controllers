@@ -4,16 +4,18 @@ various game control mechanisms.
 A controller translates touch events into higher level callbacks to control
 game objects.
 
-The library includes an analogue joystick and slider with central dead-zone, a catapult
-style interaction for launching projectiles, and tap interpreters that can be used
-as fire or jump buttons.
+The library includes an analogue joystick and slider with central dead-zone, 
+a catapult style interaction for launching projectiles, and tap interpreters
+that can be used as fire or jump buttons.
 
-Controllers can be composed. A single statement can define a complex control scheme,
-such as used in a dual-stick shooter, or a shared-screen multiplayer game, or a 
-shared-screen multiplayer dual-stick shooter!
+Controllers can be composed. A single statement can define a complex control 
+scheme, such as used in a dual-stick shooter, or a shared-screen multiplayer
+game, or a shared-screen multiplayer dual-stick shooter!
 
-A demo using the library can be seen here: http://www.youtube.com/watch?v=aKetPVT7FO0
+Example Codea programs that use the library can be seen at: 
+* http://www.youtube.com/watch?v=aKetPVT7FO0
+* http://youtu.be/B3ARwy1M5Jo?t=48s
 
-Unfortunately, because Apple restrict what apps on iOS can do, you can now longer 
-download the code directly into Codea.  You'll have to copy and paste from the GitHub
-code browser.
+Unfortunately, because Apple restrict what apps on iOS can do, you can no 
+longer download the code directly into Codea.  You'll have to copy and paste
+from the GitHub code browser.
