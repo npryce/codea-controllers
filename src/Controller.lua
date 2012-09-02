@@ -36,7 +36,11 @@ function clampAbs(x, maxAbs)
 end
 
 function clampLen(vec, maxLen)
-    return vec:normalize() * math.min(vec:len(), maxLen)
+    if vec == vec2(0,0) then
+        return vec
+    else
+        return vec:normalize() * math.min(vec:len(), maxLen)
+    end
 end
 
 -- projects v onto the direction represented by the given unit vector
